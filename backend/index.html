@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Маршруты с OSRM</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="global.css">
+</head>
+<body>
+    <div class="main_style flex-row">
+        <div class="change_transport flex-col">
+            <!-- <button id="car-button">🚗 Машина</button> -->
+            <!-- <button id="bike-button">🚲 Велосипед</button>
+            <button id="walk-button">🚶 Пешком</button>
+            <button id="truck-button">🚛 Грузовик</button> -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: blue;"></div>
+                    <span>Основной маршрут</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: green;"></div>
+                    <span>Альтернативный маршрут</span>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="algorithm" class="block font-medium">Выберите алгоритм:</label>
+                <select id="algorithm" class="border rounded w-full p-2">
+                    <option value="dijkstra">Дейкстра</option>
+                    <option value="astar">A*</option>
+                    <option value="genetic">Генетический алгоритм</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                Склады
+            </div>
+        </div>
+
+        <div style="position: relative; width: 100%; height: 100%;">
+            <div class="points-panel">
+                <div id="points_list">
+                  <!-- Список точек будет обновляться динамически -->
+                </div>
+                <div class="flex gap-2 mt-2 w-full">
+                    <button class="action-btn" onclick="getRoute()">
+                        &#128658; <!-- &#128658; Построить маршрут -->
+                    </button>
+                    <button class="action-btn" onclick="addWaypointManually()">
+                        &#43;<!-- &#43; Добавить точку -->
+                    </button>
+                </div>
+            </div>
+            <div id="map" class="map_style"></div>
+            <script>
+                // Инициализация карты
+                const map = L.map('map').setView([43.23895, 76.92848], 13);
+            
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 18,
+                }).addTo(map);
+            
+                // Объявление переменных
+                let startMarker, endMarker;
+                let waypointMarkers = []; // массив объектов { marker, lat, lng }
+                let routeLayers = [];
+            
+                // Функция создания кастомной иконки
+                const createIcon = (color, label = '') => {
+                return L.divIcon({
+                    html: `<div style="background:${color}; width:24px; height:24px; border-radius:50%; border:2px solid #fff; text-align:center; line-height:24px; color:#fff; font-weight:bold;">${label}</div>`,
+                    className: ''
+                });
+                };
+            
+                // Функция обновления иконок для всех точек
+                function updateMarkerIcons() {
+                    if (startMarker) {
+                        startMarker.setIcon(createIcon("green"));
+                    }
+                    waypointMarkers.forEach((wp, index) => {
+                        wp.marker.setIcon(createIcon("blue", index + 1));
+                    });
+                    if (endMarker) {
+                        endMarker.setIcon(createIcon("red"));
+                    }
+                }
+            
+                // Функция удаления стартовой или конечной точки с переназначением
+                function removePoint(type) {
+                    if (type === 'start' && startMarker) {
+                        map.removeLayer(startMarker);
+                        startMarker = null;
+                        // Если есть промежуточные точки, первая становится новым стартом
+                        if (waypointMarkers.length > 0) {
+                        const first = waypointMarkers.shift();
+                        startMarker = first.marker;
+                        }
+                    }
+                    if (type === 'end' && endMarker) {
+                        map.removeLayer(endMarker);
+                        endMarker = null;
+                        // Если есть промежуточные точки, последняя становится новым концом
+                        if (waypointMarkers.length > 0) {
+                        const last = waypointMarkers.pop();
+                        endMarker = last.marker;
+                        }
+                    }
+                    // if (endMarker == null || startMarker == null ) {
+                    //     clearRoutes();
+                    // }
+                    updatePointsPanel();
+                    updateMarkerIcons();
+                    getRoute(); // Пересчитываем маршрут после удаления/переназначения
+                }
+            
+                // Функция удаления промежуточной точки
+                function removeWaypoint(index) {
+                    if (waypointMarkers[index]) {
+                        map.removeLayer(waypointMarkers[index].marker);
+                        waypointMarkers.splice(index, 1);
+                    }
+                    updatePointsPanel();
+                    updateMarkerIcons();
+                    getRoute();
+                }
+            
+                // Обновление панели точек
+                function updatePointsPanel() {
+                const container = document.getElementById("points_list");
+                container.innerHTML = "";
+                // Начальная точка
+                if (startMarker) {
+                    const li = document.createElement("div");
+                    li.className = "point-item";
+                    li.innerHTML = `<span>Начало: ${formatLatLng(startMarker.getLatLng())}</span>
+                                    <button onclick="removePoint('start')">&#8722;</button>`;
+                    container.appendChild(li);
+                }
+                // Промежуточные точки
+                waypointMarkers.forEach((wp, index) => {
+                    const li = document.createElement("div");
+                    li.className = "point-item";
+                    li.innerHTML = `<span>Точка ${index + 1}: ${formatLatLng(wp.marker.getLatLng())}</span>
+                                    <button onclick="removeWaypoint(${index})">&#8722;</button>`;
+                    container.appendChild(li);
+                });
+                // Конечная точка
+                if (endMarker) {
+                    const li = document.createElement("div");
+                    li.className = "point-item";
+                    li.innerHTML = `<span>Конец: ${formatLatLng(endMarker.getLatLng())}</span>
+                                    <button onclick="removePoint('end')">&#8722;</button>`;
+                    container.appendChild(li);
+                }
+                }
+            
+                function formatLatLng(latlng) {
+                    return `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+                }
+            
+                // Обработчик клика по карте для добавления точки
+                map.on('click', function(e) {
+                    const latlng = e.latlng;
+                    if (!startMarker) {
+                        startMarker = L.marker(latlng, { draggable: true, icon: createIcon("green") }).addTo(map);
+                        startMarker.on('dragend', function() {
+                        updatePointsPanel();
+                        getRoute();
+                        });
+                    } else if (!endMarker) {
+                        endMarker = L.marker(latlng, { draggable: true, icon: createIcon("red") }).addTo(map);
+                        endMarker.on('dragend', function() {
+                        updatePointsPanel();
+                        getRoute();
+                        });
+                    } else {
+                        const index = waypointMarkers.length + 1;
+                        const marker = L.marker(latlng, { draggable: true, icon: createIcon("blue", index) }).addTo(map);
+                        marker.on('dragend', function() {
+                        updatePointsPanel();
+                        getRoute();
+                        });
+                        waypointMarkers.push({ marker, lat: latlng.lat, lng: latlng.lng });
+                    }
+                    updatePointsPanel();
+                    updateMarkerIcons();
+                    getRoute();
+                });
+            
+                // Функция ручного добавления промежуточной точки через кнопку "Добавить точку"
+                function addWaypointManually() {
+                    const latlng = map.getCenter();
+                    const index = waypointMarkers.length + 1;
+                    const marker = L.marker(latlng, { draggable: true, icon: createIcon("blue", index) }).addTo(map);
+                    marker.on('dragend', function() {
+                        updatePointsPanel();
+                        getRoute();
+                    });
+                    waypointMarkers.push({ marker, lat: latlng.lat, lng: latlng.lng });
+                    updatePointsPanel();
+                    updateMarkerIcons();
+                    getRoute();
+                }
+            
+                // Функция запроса маршрута с сервера (пример)
+                async function getRoute() {
+                    if (!startMarker || !endMarker) return;
+                    // Собираем координаты: старт; все промежуточные точки; конец
+                    const startCoords = startMarker.getLatLng();
+                    const endCoords = endMarker.getLatLng();
+                    let coords = [];
+                    coords.push(`${startCoords.lng},${startCoords.lat}`);
+                    waypointMarkers.forEach(wp => {
+                        const latlng = wp.marker.getLatLng();
+                        coords.push(`${latlng.lng},${latlng.lat}`);
+                    });
+                    coords.push(`${endCoords.lng},${endCoords.lat}`);
+                    
+                    // Пример URL запроса к API (адаптируйте под свои параметры)
+                    console.log("coord" , coords.join(';'))
+                    const url = `http://127.0.0.1:8000/route/?points=${coords.join(';')}&profiles=car&profiles=foot&alternatives=true`;
+                    try {
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        console.log(data);
+                        if (!data.routes || data.routes.length === 0) {
+                        console.error("Ошибка: API не вернул маршруты.");
+                        clearRoutes();
+                        return;
+                        }
+                        clearRoutes();
+                        data.routes.forEach((route, index) => {
+                            console.log("Start route");
+                            const routeCoords = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                            const color = index === 0 ? 'blue' : 'green';
+                            const routeLayer = L.polyline(routeCoords, { color, weight: 4, opacity: 0.7 }).addTo(map);
+                            routeLayers.push(routeLayer);
+                        });
+                    } catch (error) {
+                        console.error("Ошибка запроса маршрута:", error);
+                    }
+                }
+            
+                function clearRoutes() {
+                    routeLayers.forEach(layer => map.removeLayer(layer));
+                    routeLayers = [];
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

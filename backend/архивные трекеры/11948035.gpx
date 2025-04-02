@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="OSMTracker for Android™ - https://github.com/labexp/osmtracker-android" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd ">
+	<metadata>
+		<name>2025-04-01_15-13-31</name>
+		<keywords>osmtracker</keywords>
+		<desc>Fort Karl</desc>
+	</metadata>
+	<wpt lat="17.893065301292765" lon="-62.850055282387295">
+		<ele>-5.510868337902788</ele>
+		<time>2025-04-01T19:13:30Z</time>
+		<name><![CDATA[binoculars ]]></name>
+		<sat>22</sat>
+	</wpt>
+	<trk>
+		<name><![CDATA[Tracked with OSMTracker for Android™]]></name>
+		<trkseg>
+			<trkpt lat="17.89306526836654" lon="-62.850059164352764">
+				<ele>-5.466650740939723</ele>
+				<time>2025-04-01T19:13:29Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.893065301292765" lon="-62.850055282387295">
+				<ele>-5.510868337902788</ele>
+				<time>2025-04-01T19:13:30Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.893065301292765" lon="-62.850055282387295">
+				<ele>-5.510868337902788</ele>
+				<time>2025-04-01T19:13:30Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.89306851470639" lon="-62.850052555405824">
+				<ele>-5.832734496117293</ele>
+				<time>2025-04-01T19:13:31Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.893070199190145" lon="-62.85005106775671">
+				<ele>-6.298109567413595</ele>
+				<time>2025-04-01T19:13:32Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.893067943506416" lon="-62.850051288234845">
+				<ele>-6.53759041099752</ele>
+				<time>2025-04-01T19:13:33Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.893067863660626" lon="-62.85005081714003">
+				<ele>-7.100382551124521</ele>
+				<time>2025-04-01T19:13:34Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.893066501701092" lon="-62.85005210644853">
+				<ele>-7.4722027775491</ele>
+				<time>2025-04-01T19:13:35Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+			<trkpt lat="17.8930654026834" lon="-62.85005178342526">
+				<ele>-7.526494005653897</ele>
+				<time>2025-04-01T19:13:36Z</time>
+				<extensions>
+					<speed>0.0</speed>
+				</extensions>
+			</trkpt>
+		</trkseg>
+	</trk>
+</gpx>

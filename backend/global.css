@@ -1,0 +1,145 @@
+.map_circle {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+.points-panel {
+    margin-left: 40px;
+    background: rgba(255,255,255,0.9);
+    padding: 8px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    max-width: 300px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+#map { height: 80vh; }
+.point-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.point-item span {
+    flex-grow: 1;
+}
+.point-item button {
+    margin-left: 4px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    background: #4A90E2;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+.main_style {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.change_transport {
+    width: 20%;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.change_transport button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    width: 100%;
+    margin-bottom: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+.change_transport button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.change_transport button.active {
+    background-color: #0056b3;
+    border: 2px solid #003d80;
+}
+
+.map_style {
+    flex-grow: 1;
+    height: calc(100% - 80px);
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+    width: 100%;
+}
+
+.circles label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.circles input {
+    padding: 8px;
+    width: 150px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.legend {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
