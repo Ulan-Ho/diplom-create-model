@@ -42,21 +42,72 @@
         <div style="position: relative; width: 100%; height: 100%;">
             <div class="points-panel">
                 <div id="points_list">
-                  <!-- Список точек будет обновляться динамически -->
+                    <!-- Список точек будет обновляться динамически -->
                 </div>
                 <div class="flex gap-2 mt-2 w-full">
-                    <button class="action-btn" onclick="getRoute()">
-                        &#128658; <!-- &#128658; Построить маршрут -->
+                    <!-- <button class="action-btn" onclick="getRoute()">
+                        &#128658; 
                     </button>
                     <button class="action-btn" onclick="addWaypointManually()">
-                        &#43;<!-- &#43; Добавить точку -->
-                    </button>
+                        &#43;
+                    </button> -->
+                    <div id="info"></div>
                 </div>
             </div>
             <div id="map" class="map_style"></div>
             <script>
                 // Инициализация карты
                 const map = L.map('map').setView([43.23895, 76.92848], 13);
+
+                // const map = L.map("map").setView([47.5, 67.0], 13); // Центральная точка Казахстана
+
+// Границы Казахстана (примерно)
+const kazakhstanPolygon = [
+    [55.0, 73.0],  // Север (Петропавловск)
+    [51.0, 87.0],  // Восток (Китайская граница)
+    [42.0, 79.0],  // Юго-восток (Алматы)
+    [40.0, 69.0],  // Юг (Шымкент)
+    [47.0, 51.0],  // Запад (Атырау)
+    [54.0, 50.0],  // Северо-запад (Костанай)
+    [55.0, 73.0]   // Замкнем контур
+];
+
+// Отобразим границы Казахстана на карте
+L.polygon(kazakhstanPolygon, { color: "blue" }).addTo(map);
+
+// Генерация случайной точки внутри полигона (упрощенный метод)
+function getRandomLatLngInKazakhstan() {
+    let lat, lng;
+    do {
+        lat = 40.5 + Math.random() * (54.5 - 40.5);
+        lng = 50.5 + Math.random() * (86.5 - 50.5);
+    } while (!insidePolygon([lat, lng], kazakhstanPolygon));
+    
+    return L.latLng(lat, lng);
+}
+
+// Функция для проверки, лежит ли точка внутри полигона (алгоритм "Ray-Casting")
+function insidePolygon(point, polygon) {
+    let [x, y] = point;
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        let [xi, yi] = polygon[i];
+        let [xj, yj] = polygon[j];
+        let intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+// Функция клика в случайной точке Казахстана
+function clickRandomPointInKazakhstan() {
+    const randomLatLng = getRandomLatLngInKazakhstan();
+    map.fire("click", { latlng: randomLatLng });
+}
+
+// Запуск случайных кликов (раз в 2 секунды)
+// setInterval(clickRandomPointInKazakhstan, 800);
+
             
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 18,
@@ -80,9 +131,9 @@
                     if (startMarker) {
                         startMarker.setIcon(createIcon("green"));
                     }
-                    waypointMarkers.forEach((wp, index) => {
-                        wp.marker.setIcon(createIcon("blue", index + 1));
-                    });
+                    // waypointMarkers.forEach((wp, index) => {
+                    //     wp.marker.setIcon(createIcon("blue", index + 1));
+                    // });
                     if (endMarker) {
                         endMarker.setIcon(createIcon("red"));
                     }
@@ -95,8 +146,8 @@
                         startMarker = null;
                         // Если есть промежуточные точки, первая становится новым стартом
                         if (waypointMarkers.length > 0) {
-                        const first = waypointMarkers.shift();
-                        startMarker = first.marker;
+                            const first = waypointMarkers.shift();
+                            startMarker = first.marker;
                         }
                     }
                     if (type === 'end' && endMarker) {
@@ -129,32 +180,32 @@
             
                 // Обновление панели точек
                 function updatePointsPanel() {
-                const container = document.getElementById("points_list");
-                container.innerHTML = "";
-                // Начальная точка
-                if (startMarker) {
-                    const li = document.createElement("div");
-                    li.className = "point-item";
-                    li.innerHTML = `<span>Начало: ${formatLatLng(startMarker.getLatLng())}</span>
-                                    <button onclick="removePoint('start')">&#8722;</button>`;
-                    container.appendChild(li);
-                }
-                // Промежуточные точки
-                waypointMarkers.forEach((wp, index) => {
-                    const li = document.createElement("div");
-                    li.className = "point-item";
-                    li.innerHTML = `<span>Точка ${index + 1}: ${formatLatLng(wp.marker.getLatLng())}</span>
-                                    <button onclick="removeWaypoint(${index})">&#8722;</button>`;
-                    container.appendChild(li);
-                });
-                // Конечная точка
-                if (endMarker) {
-                    const li = document.createElement("div");
-                    li.className = "point-item";
-                    li.innerHTML = `<span>Конец: ${formatLatLng(endMarker.getLatLng())}</span>
-                                    <button onclick="removePoint('end')">&#8722;</button>`;
-                    container.appendChild(li);
-                }
+                    const container = document.getElementById("points_list");
+                    container.innerHTML = "";
+                    // Начальная точка
+                    if (startMarker) {
+                        const li = document.createElement("div");
+                        li.className = "point-item";
+                        li.innerHTML = `<span>Начало: ${formatLatLng(startMarker.getLatLng())}</span>
+                                        <button onclick="removePoint('start')">&#8722;</button>`;
+                        container.appendChild(li);
+                    }
+                    // Промежуточные точки
+                    // waypointMarkers.forEach((wp, index) => {
+                    //     const li = document.createElement("div");
+                    //     li.className = "point-item";
+                    //     li.innerHTML = `<span>Точка ${index + 1}: ${formatLatLng(wp.marker.getLatLng())}</span>
+                    //                     <button onclick="removeWaypoint(${index})">&#8722;</button>`;
+                    //     container.appendChild(li);
+                    // });
+                    // Конечная точка
+                    if (endMarker) {
+                        const li = document.createElement("div");
+                        li.className = "point-item";
+                        li.innerHTML = `<span>Конец: ${formatLatLng(endMarker.getLatLng())}</span>
+                                        <button onclick="removePoint('end')">&#8722;</button>`;
+                        container.appendChild(li);
+                    }
                 }
             
                 function formatLatLng(latlng) {
@@ -167,23 +218,32 @@
                     if (!startMarker) {
                         startMarker = L.marker(latlng, { draggable: true, icon: createIcon("green") }).addTo(map);
                         startMarker.on('dragend', function() {
-                        updatePointsPanel();
-                        getRoute();
+                            updatePointsPanel();
+                            getRoute();
                         });
                     } else if (!endMarker) {
                         endMarker = L.marker(latlng, { draggable: true, icon: createIcon("red") }).addTo(map);
                         endMarker.on('dragend', function() {
-                        updatePointsPanel();
-                        getRoute();
+                            updatePointsPanel();
+                            getRoute();
                         });
                     } else {
-                        const index = waypointMarkers.length + 1;
-                        const marker = L.marker(latlng, { draggable: true, icon: createIcon("blue", index) }).addTo(map);
-                        marker.on('dragend', function() {
-                        updatePointsPanel();
-                        getRoute();
+                        // const index = waypointMarkers.length + 1;
+                        // const marker = L.marker(latlng, { draggable: true, icon: createIcon("blue", index) }).addTo(map);
+                        // marker.on('dragend', function() {
+                        //     updatePointsPanel();
+                        //     getRoute();
+                        // });
+                        // waypointMarkers.push({ marker, lat: latlng.lat, lng: latlng.lng });
+                        map.removeLayer(startMarker);
+                        startMarker = L.marker(latlng, { draggable: true, icon: createIcon("green") }).addTo(map);
+                        startMarker.on('dragend', function() {
+                            updatePointsPanel();
+                            getRoute();
                         });
-                        waypointMarkers.push({ marker, lat: latlng.lat, lng: latlng.lng });
+                        map.removeLayer(endMarker);
+
+                        endMarker = null
                     }
                     updatePointsPanel();
                     updateMarkerIcons();
@@ -204,7 +264,15 @@
                     updateMarkerIcons();
                     getRoute();
                 }
-            
+                
+                function formatTime(seconds) {
+                    const minutes = Math.floor(seconds / 60);
+                    return minutes > 0 ? `${minutes} мин` : `${seconds} сек`;
+                }
+
+                function formatSpeed(distance, duration) {
+                    return duration > 0 ? (distance / duration * 3.6).toFixed(2) + " км/ч" : "N/A";
+                }
                 // Функция запроса маршрута с сервера (пример)
                 async function getRoute() {
                     if (!startMarker || !endMarker) return;
@@ -225,20 +293,72 @@
                     try {
                         const response = await fetch(url);
                         const data = await response.json();
-                        console.log(data);
+                        // console.log(data["osrm-route"]);
+                        // osrm_data = data["osrm-route"]
                         if (!data.routes || data.routes.length === 0) {
-                        console.error("Ошибка: API не вернул маршруты.");
-                        clearRoutes();
-                        return;
+                            console.error("Ошибка: API не вернул маршруты.");
+                            clearRoutes();
+                            return;
                         }
                         clearRoutes();
+                        const info = document.getElementById("info");
+                        info.innerHTML = ""; // Очищаем перед добавлением новых данных
+
                         data.routes.forEach((route, index) => {
-                            console.log("Start route");
+                            if (!route) return;
+
                             const routeCoords = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
                             const color = index === 0 ? 'blue' : 'green';
                             const routeLayer = L.polyline(routeCoords, { color, weight: 4, opacity: 0.7 }).addTo(map);
                             routeLayers.push(routeLayer);
+                           
+                            // Создаем контейнер для информации о каждом маршруте
+                            const routeInfo = document.createElement("div");
+                            routeInfo.classList.add("route-info");
+
+                            // Заголовок
+                            const title = document.createElement("h3");
+                            title.textContent = `Маршрут ${index + 1}`;
+                            routeInfo.appendChild(title);
+
+                            // Основная информация
+                            const summary = document.createElement("p");
+                            summary.innerHTML = `<strong>Расстояние:</strong> ${(route.distance / 1000).toFixed(2)} км<br>
+                                                <strong>Время в пути:</strong> ${(route.duration / 60).toFixed(2)} минут<br>
+                                                <strong>Средняя скорость:</strong> ${((route.distance / route.duration) * 3.6).toFixed(2)} км/ч<br>
+                                                <strong>Количество этапов:</strong> ${route.legs.length}`;
+                            routeInfo.appendChild(summary);
+
+                            // Детальная информация по этапам маршрута
+                            route.legs.forEach((leg, legIndex) => {
+                                const legInfo = document.createElement("div");
+                                legInfo.classList.add("leg-info");
+
+                                const legTitle = document.createElement("h4");
+                                legTitle.textContent = `Этап ${legIndex + 1}`;
+                                legInfo.appendChild(legTitle);
+
+                                const legDetails = document.createElement("p");
+                                legDetails.innerHTML = `<strong>Расстояние:</strong> ${(leg.distance / 1000).toFixed(2)} км<br>
+                                                        <strong>Время:</strong> ${(leg.duration / 60).toFixed(2)} минут<br>
+                                                        <strong>Шагов в этапе:</strong> ${leg.steps.length}`;
+                                legInfo.appendChild(legDetails);
+
+                                // Детали шагов
+                                const stepsList = document.createElement("ul");
+                                leg.steps.forEach((step, stepIndex) => {
+                                    const stepItem = document.createElement("li");
+                                    stepItem.textContent = step.distance != 0 && step.duration !=0 ? `Шаг ${stepIndex + 1}: ${step.name || ''} ${step.maneuver["modifier"]} ${step.distance} м, ${step.duration} секунд, скорость ${formatSpeed(step.distance, step.duration)}` : `Шаг ${stepIndex + 1}: Вы прибыли на место!`;
+                                    stepsList.appendChild(stepItem);
+                                });
+
+                                legInfo.appendChild(stepsList);
+                                routeInfo.appendChild(legInfo);
+                            });
+
+                            info.appendChild(routeInfo);
                         });
+
                     } catch (error) {
                         console.error("Ошибка запроса маршрута:", error);
                     }
@@ -248,6 +368,9 @@
                     routeLayers.forEach(layer => map.removeLayer(layer));
                     routeLayers = [];
                 }
+
+
+                
             </script>
         </div>
     </div>
